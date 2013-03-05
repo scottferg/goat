@@ -12,10 +12,15 @@ import (
 )
 
 const (
-	GET    = "GET"
-	POST   = "POST"
-	PUT    = "PUT"
-	DELETE = "DELETE"
+	GET    = 0x1
+	POST   = 0x2
+	PUT    = 0x4
+	DELETE = 0x8
+
+	methodGet    = "GET"
+	methodPost   = "POST"
+	methodPut    = "PUT"
+	methodDelete = "DELETE"
 )
 
 type Goat struct {
@@ -49,23 +54,43 @@ func (r Route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// Execute the handler
-    if r.handler != nil {
-        err = r.handler(w, req, c)
-    } else if r.interceptor != nil {
-        rh := r.interceptor(w, req, c)
-        err = rh(w, req, c)
-    }
+	if r.handler != nil {
+		err = r.handler(w, req, c)
+	} else if r.interceptor != nil {
+		rh := r.interceptor(w, req, c)
+		err = rh(w, req, c)
+	}
 
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-    }
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func getMethodList(methods int) (r []string) {
+	if methods&GET == GET {
+		r = append(r, methodGet)
+	}
+
+	if methods&POST == POST {
+		r = append(r, methodPost)
+	}
+
+	if methods&PUT == PUT {
+		r = append(r, methodPut)
+	}
+
+	if methods&DELETE == DELETE {
+		r = append(r, methodDelete)
+	}
+
+	return
 }
 
 func NewGoat() *Goat {
 	// Initialize session store
 	gob.Register(bson.ObjectId(""))
 	s := sessions.NewCookieStore([]byte("sevenbyelevensecretbomberboy"))
-    r := mux.NewRouter()
+	r := mux.NewRouter()
 
 	http.Handle("/", r)
 
@@ -75,7 +100,7 @@ func NewGoat() *Goat {
 	}
 }
 
-func (g *Goat) RegisterRoute(path, method, name string, handler interface{}) {
+func (g *Goat) RegisterRoute(path, name string, method int, handler interface{}) {
 	// Initialize the HTTP router
 	r := new(Route)
 	r.Goat = g
@@ -88,7 +113,8 @@ func (g *Goat) RegisterRoute(path, method, name string, handler interface{}) {
 		r.interceptor = i
 	}
 
-	g.router.Handle(path, r).Methods(method)
+	methods := getMethodList(method)
+	g.router.Handle(path, r).Methods(methods...)
 }
 
 func (g *Goat) RegisterStaticFileHandler(path string) {
@@ -101,7 +127,7 @@ func (g *Goat) RegisterMiddleware(m Middleware) {
 }
 
 func (g *Goat) Reverse(route string) (*url.URL, error) {
-    return g.router.Get("index").URL()
+	return g.router.Get("index").URL()
 }
 
 func (g *Goat) ListenAndServe(port string) {

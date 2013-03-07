@@ -30,7 +30,6 @@ type Goat struct {
 	sessionstore sessions.Store
 }
 
-type Middleware func(*http.Request, *Context) error
 type Handler func(http.ResponseWriter, *http.Request, *Context) error
 
 type Route struct {

@@ -14,7 +14,9 @@ that will only fire on specific requests.
 
 Add Goat to your project by importing the package
 
+        ```go
         import "github.com/vokalinteractive/goat"
+        ```
 
 Then initialize it within your application
 
@@ -38,12 +40,13 @@ And you're ready to start serving your app
 
 # Routes
 
-Routes adhere to the Handler type:
+Routes can be considered controllers in the MVC sense, and adhere to the Handler type:
 
         func(w http.ResponseWriter, r *http.Request, c *goat.Context)
 
-The context attached to each request is how you can access your database, session, or user from within a
-view handler
+Reponding to a request is done by simply writing to the http.ResponseWriter provided. 
+The context attached to each request is how you can access your database, 
+session, or user from within a view handler
 
         type Context struct {
             Database *mgo.Database
@@ -56,6 +59,16 @@ view handler
 Middleware is a function that returns a function with the following signature:
 
         func(r *http.Request, c *goat.Context)
+
+Creating your own middleware is easy:
+
+        func NewMyCoolMiddleware(awesometown string) Middleware {
+            return func(r *http.Request, c *Context) error {
+                // Middleware that adds a string to a users session
+                c.Session.Values["coolkey"] = awesometown
+                return err
+            }
+        }
 
 All middleware will run in the order in which it is registered, before a handler is called on your route.
 Out of the box, Goat provides the following middleware:
@@ -73,6 +86,23 @@ viable solution in this case, Goat provides interceptors. An interceptor returns
 type:
 
         func(w http.ResponseWriter, r *http.Request, c *goat.Context)
+
+Like middleware, interceptors are also easy to write:
+
+        func NewMyCoolInterceptor(route Handler) Interceptor {
+            // Informs the user they aren't cool if the request did not include the X-Cool-Header
+            // otherwise the route will function as normal
+            return func(w http.ResponseWriter, r *http.Request, c *Context) Handler {
+                if h := r.Header.Get("X-Cool-Header"); h == "" {
+                    return func(w http.ResponseWriter, r *http.Request, c *Context) error {
+                        http.Error(w, "You ain't cool!", http.StatusUnauthorized)
+                        return nil
+                    }
+                }
+
+                return route
+            }
+        }
 
 Goat provides the following interceptors for you:
 

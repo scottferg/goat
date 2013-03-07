@@ -44,9 +44,8 @@ Routes can be considered controllers in the MVC sense, and adhere to the Handler
 
         func(w http.ResponseWriter, r *http.Request, c *goat.Context)
 
-Reponding to a request is done by simply writing to the http.ResponseWriter provided. 
-The context attached to each request is how you can access your database, 
-session, or user from within a view handler
+Responses to a request can happen through the traditional methods with http.ResponseWriter. The context attached to each 
+request is how you can access your database, session, or user from within a view handler
 
         type Context struct {
             Database *mgo.Database
@@ -56,7 +55,7 @@ session, or user from within a view handler
 
 # Middleware
 
-Middleware is a function that returns a function with the following signature:
+Middleware is a higher-order function that returns a function with the following signature:
 
         func(r *http.Request, c *goat.Context)
 

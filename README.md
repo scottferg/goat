@@ -40,7 +40,7 @@ And you're ready to start serving your app
 
 Routes can be considered controllers in the MVC sense, and adhere to the Handler type:
 
-        func(w http.ResponseWriter, r *http.Request, c *goat.Context)
+        func(w http.ResponseWriter, r *http.Request, c *goat.Context) error
 
 Responses to a request can happen through the traditional methods with http.ResponseWriter. The context attached to each 
 request is how you can access your database, session, or user from within a view handler
@@ -82,7 +82,7 @@ Sometimes you may want requests to perform an action that other requests shouldn
 viable solution in this case, Goat provides interceptors. An interceptor returns a function with a Handler
 type:
 
-        func(w http.ResponseWriter, r *http.Request, c *goat.Context)
+        func(w http.ResponseWriter, r *http.Request, c *goat.Context) error
 
 Like middleware, interceptors are also easy to write:
 

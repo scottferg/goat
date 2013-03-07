@@ -3,6 +3,7 @@ package goat
 import (
 	"code.google.com/p/go.crypto/bcrypt"
 	"labix.org/v2/mgo/bson"
+	"net/http"
 )
 
 type User struct {
@@ -32,8 +33,9 @@ func (u *User) Save(c *Context) error {
 	return nil
 }
 
-func (u *User) Login(c *Context) {
+func (u *User) Login(w http.ResponseWriter, r *http.Request, c *Context) {
     c.Session.Values["uid"] = u.Id
+    c.Session.Save(r, w)
 }
 
 func NewUser(username, password string) (u *User, err error) {

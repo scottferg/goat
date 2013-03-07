@@ -8,17 +8,26 @@ import (
 )
 
 var (
-    g *goat.Goat
+	g *goat.Goat
 )
 
 func Index(w http.ResponseWriter, r *http.Request, c *goat.Context) error {
-    fmt.Fprint(w, "You got here to the index!")
+	v := c.Session.Values["counter"]
 
-    return nil
+	count, ok := v.(int)
+	if ok {
+		count = count + 1
+	}
+
+	c.Session.Values["counter"] = count
+	c.Session.Save(r, w)
+
+	fmt.Fprintf(w, "You got here to the index! You have been here %d times!", count)
+	return nil
 }
 
 func ErrorRoute(w http.ResponseWriter, r *http.Request, c *goat.Context) error {
-    return errors.New("This is a 500! Goat handles your errors for you! Neat-o!")
+	return errors.New("This is a 500! Goat handles your errors for you! Neat-o!")
 }
 
 func main() {

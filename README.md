@@ -3,10 +3,10 @@ Goat Web Framework
 
 Goat is a small web framework for Go that makes the following assumptions about your application:
 
-* It is using a Mongodb database
+* It is using a Mongodb database and it uses mgo as a driver
 * It has a User model that has a username and password
 
-Goat wraps the stock Go net/http library to provide a faster API for building routes for your application.
+Goat wraps the stock Go net/http library to provide a productive API for building routes for your application.
 Routes can have universally configured middleware that will execute on each request, or an interceptor
 that will only fire on specific requests.
 

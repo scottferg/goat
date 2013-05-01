@@ -11,9 +11,9 @@ var (
 	}
 )
 
-func ParseTemplates(path string) *template.Template {
-    t := template.New("templates").Funcs(funcMap)
-    t, err := t.ParseGlob("templates/*")
+func ParseTemplates(name, path string) *template.Template {
+    t := template.New(name).Funcs(funcMap)
+    t, err := t.ParseGlob(path)
 
     return template.Must(t, err)
 }

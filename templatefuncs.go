@@ -30,19 +30,51 @@ package goat
 import (
 	"html/template"
 	"labix.org/v2/mgo/bson"
+	"reflect"
 )
 
 var (
 	funcMap = template.FuncMap{
 		"objectIdHex": ObjectIdHex,
+		"eq":          eq,
 	}
 )
 
-func ParseTemplates(name, path string) *template.Template {
-    t := template.New(name).Funcs(funcMap)
-    t, err := t.ParseGlob(path)
+func ParseTemplates(name, path string, funcs template.FuncMap) *template.Template {
+	if funcs != nil {
+		for k, v := range funcs {
+			funcMap[k] = v
+		}
+	}
 
-    return template.Must(t, err)
+	t := template.New(name).Funcs(funcMap)
+	t, err := t.ParseGlob(path)
+
+	return template.Must(t, err)
+}
+
+// Via Russ Cox: http://goo.gl/GJUl1
+func eq(args ...interface{}) bool {
+	if len(args) == 0 {
+		return false
+	}
+	x := args[0]
+	switch x := x.(type) {
+	case string, int, int64, byte, float32, float64:
+		for _, y := range args[1:] {
+			if x == y {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, y := range args[1:] {
+		if reflect.DeepEqual(x, y) {
+			return true
+		}
+	}
+	return false
 }
 
 func ObjectIdHex(id bson.ObjectId) string {

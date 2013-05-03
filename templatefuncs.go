@@ -40,7 +40,7 @@ var (
 	}
 )
 
-func ParseTemplates(name, path string, funcs template.FuncMap) *template.Template {
+func ParseTemplates(name, path string, funcs template.FuncMap, delims []string) *template.Template {
 	if funcs != nil {
 		for k, v := range funcs {
 			funcMap[k] = v
@@ -48,6 +48,11 @@ func ParseTemplates(name, path string, funcs template.FuncMap) *template.Templat
 	}
 
 	t := template.New(name).Funcs(funcMap)
+
+	if delims != nil {
+		t.Delims(delims[0], delims[1])
+	}
+
 	t, err := t.ParseGlob(path)
 
 	return template.Must(t, err)

@@ -10,6 +10,8 @@ Goat wraps the stock Go net/http library to provide a productive API for buildin
 Routes can have universally configured middleware that will execute on each request, or an interceptor
 that will only fire on specific requests.
 
+You can find details documentation here: http://godoc.org/github.com/scottferg/goat
+
 # Basic usage
 
 Add Goat to your project by importing the package
@@ -109,3 +111,16 @@ Goat provides the following interceptors for you:
         // Verifies that the session associated with this request has a goat.User associated with it,
         // otherwise it redirects to unauthorized
         NewAuthSessionInterceptor(normal, unauthorized Handler) Interceptor
+
+# Templates
+
+Goat provides some conveniences for the built-in `html/template` package, provided that you
+parse your templates through the framework:
+
+	tFuncs = map[string]interface{}{
+		"truncate":   truncate,
+		"prettyDate": prettyDate,
+	}
+	ts = goat.ParseTemplates("templates", "templates/*.html", tFuncs, []string{"{%", "%}"})
+
+Convenience template functions can be found in the package documentation.

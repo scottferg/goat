@@ -53,6 +53,10 @@ request is how you can access your database, session, or user from within a view
             User     *User
         }
 
+Note that Goat uses the Gorilla Web Toolkit under the hood for a number of functions, including
+session management. If you need to manipulate the session directly, you'll need to import `"github.com/gorilla/sessions"`
+or a compatible fork.
+
 # Middleware
 
 Middleware is a higher-order function that returns a function with the following signature:

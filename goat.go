@@ -30,8 +30,8 @@ package goat
 import (
 	"encoding/gob"
 	"fmt"
-	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	"github.com/scottferg/mux"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"net/http"
@@ -52,24 +52,32 @@ const (
 
 type Goat struct {
 	router       *mux.Router
+	routes       map[string]*route
 	middleware   []Middleware
 	dbsession    *mgo.Session
+	dbname       string
 	sessionstore sessions.Store
+}
+
+type ServeMux interface {
+	ServeHTTP(w http.ResponseWriter, r *http.Request)
 }
 
 type Handler func(http.ResponseWriter, *http.Request, *Context) error
 
-type Route struct {
+type route struct {
 	*Goat
+	path        string
+	name        string
 	handler     Handler
 	interceptor Interceptor
 }
 
-func (r Route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var c *Context
 	var err error
 
-	if c, err = NewContext(req); err != nil {
+	if c, err = NewContext(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	defer c.Close()
@@ -123,13 +131,22 @@ func NewGoat() *Goat {
 	return &Goat{
 		router:       r,
 		sessionstore: s,
+		routes:       make(map[string]*route),
 	}
 }
 
 func (g *Goat) RegisterRoute(path, name string, method int, handler interface{}) {
 	// Initialize the HTTP router
-	r := new(Route)
+	r := new(route)
 	r.Goat = g
+	r.path = path
+	r.name = name
+
+	if g.routes[r.name] != nil {
+		return
+	}
+
+	g.routes[r.name] = r
 
 	if h, ok := handler.(func(http.ResponseWriter, *http.Request, *Context) error); ok {
 		r.handler = h
@@ -137,6 +154,11 @@ func (g *Goat) RegisterRoute(path, name string, method int, handler interface{})
 		r.handler = h
 	} else if i, ok := handler.(Interceptor); ok {
 		r.interceptor = i
+	} else if h, ok := handler.(ServeMux); ok {
+		g.router.Handle(path, h)
+		return
+	} else {
+		panic("Unknown handler passed to RegisterRoute")
 	}
 
 	methods := getMethodList(method)
@@ -153,7 +175,7 @@ func (g *Goat) RegisterMiddleware(m Middleware) {
 }
 
 func (g *Goat) Reverse(route string) (*url.URL, error) {
-	return g.router.Get("index").URL()
+	return g.router.Get(route).URL()
 }
 
 func (g *Goat) ListenAndServe(port string) {

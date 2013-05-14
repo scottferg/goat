@@ -14,7 +14,7 @@ that will only fire on specific requests.
 
 Add Goat to your project by importing the package
 
-        import "github.com/vokalinteractive/goat"
+        import "github.com/scottferg/goat"
 
 Then initialize it within your application
 

@@ -25,12 +25,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ****************************************************************************/
 
-package goat 
+package goat
 
 import (
 	"github.com/gorilla/sessions"
 	"labix.org/v2/mgo"
-	"net/http"
 )
 
 type Context struct {
@@ -40,11 +39,11 @@ type Context struct {
 }
 
 func (c *Context) Close() {
-    if c.Database != nil {
-        c.Database.Session.Close()
-    }
+	if c.Database != nil {
+		c.Database.Session.Close()
+	}
 }
 
-func NewContext(req *http.Request) (*Context, error) {
+func NewContext() (*Context, error) {
 	return new(Context), nil
 }

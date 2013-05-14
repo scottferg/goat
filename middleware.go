@@ -68,6 +68,8 @@ func (g *Goat) NewDatabaseMiddleware(host, name string) Middleware {
 		panic(err.Error())
 	}
 
+	g.dbname = name
+
 	return func(r *http.Request, c *Context) error {
 		c.Database = g.dbsession.Clone().DB(name)
 		return nil

@@ -10,7 +10,7 @@ Goat wraps the stock Go net/http library to provide a productive API for buildin
 Routes can have universally configured middleware that will execute on each request, or an interceptor
 that will only fire on specific requests.
 
-You can find details documentation here: http://godoc.org/github.com/scottferg/goat
+You can find detailed documentation here: http://godoc.org/github.com/scottferg/goat
 
 # Basic usage
 

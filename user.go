@@ -29,6 +29,7 @@ package goat
 
 import (
 	"code.google.com/p/go.crypto/bcrypt"
+	"errors"
 	"labix.org/v2/mgo/bson"
 	"net/http"
 )
@@ -61,16 +62,29 @@ func (u *User) Save(c *Context) error {
 }
 
 func (u *User) Login(w http.ResponseWriter, r *http.Request, c *Context) {
-    c.Session.Values["uid"] = u.Id
-    c.Session.Save(r, w)
+	c.Session.Values["uid"] = u.Id
+	c.Session.Save(r, w)
 }
 
-func NewUser(username, password string) (u *User, err error) {
+func NewUser(username, password string, c *Context) (u *User, err error) {
+	query := c.Database.C("goat_users").Find(bson.M{"username": bson.M{"$in": []string{username}}})
+	if n, _ := query.Count(); n > 0 {
+		return nil, errors.New("account with that name already exists")
+	}
+
 	u = &User{
 		Id:       bson.NewObjectId(),
 		Username: username,
 	}
 	err = u.SetPassword(password)
+
+	return
+}
+
+func FindUser(username string, c *Context) (u *User, err error) {
+	err = c.Database.C("goat_users").Find(bson.M{
+		"username": username,
+	}).One(&u)
 
 	return
 }

@@ -30,6 +30,7 @@ package goat
 import (
 	"github.com/gorilla/sessions"
 	"labix.org/v2/mgo"
+	"net/http"
 )
 
 type Context struct {
@@ -42,6 +43,11 @@ func (c *Context) Close() {
 	if c.Database != nil {
 		c.Database.Session.Close()
 	}
+}
+
+func (c *Context) ClearSession(w http.ResponseWriter, r *http.Request) {
+	c.Session.Values["uid"] = nil
+	c.Session.Save(r, w)
 }
 
 func NewContext() (*Context, error) {

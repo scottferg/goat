@@ -37,17 +37,22 @@ import (
 
 type Interceptor func(http.ResponseWriter, *http.Request, *Context) Handler
 
-func NewBasicAuthInterceptor(normal Handler) Interceptor {
-	unauthorized := func(w http.ResponseWriter, r *http.Request, c *Context) error {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return nil
-	}
+func Generic401(w http.ResponseWriter, r *http.Request, c *Context) error {
+	http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	return nil
+}
 
+func Generic403(w http.ResponseWriter, r *http.Request, c *Context) error {
+	http.Error(w, "Forbidden", http.StatusForbidden)
+	return nil
+}
+
+func NewBasicAuthInterceptor(normal Handler) Interceptor {
 	return func(w http.ResponseWriter, r *http.Request, c *Context) Handler {
 		auth := r.Header.Get("Authorization")
 
 		if auth == "" {
-			return unauthorized
+			return Generic403
 		}
 
 		encoded := strings.Split(auth, "Basic ")[1]
@@ -62,7 +67,7 @@ func NewBasicAuthInterceptor(normal Handler) Interceptor {
 		// Authenticate now
 		u, err := Authenticate(c, credentials[0], credentials[1])
 		if err != nil {
-			return unauthorized
+			return Generic401
 		}
 
 		c.User = u
@@ -78,7 +83,7 @@ func NewAuthSessionInterceptor(normal, unauthorized Handler) Interceptor {
 		if uid != nil {
 			// run the handler and grab the error, and report it
 			if uid, ok := c.Session.Values["uid"].(bson.ObjectId); ok {
-                // TODO: Error check here
+				// TODO: Error check here
 				c.Database.C("goat_users").Find(bson.M{"_id": uid}).One(&c.User)
 			}
 

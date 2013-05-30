@@ -51,16 +51,12 @@ const (
 )
 
 type Goat struct {
-	router       *mux.Router
+	Router       *mux.Router
 	routes       map[string]*route
 	middleware   []Middleware
 	dbsession    *mgo.Session
 	dbname       string
 	sessionstore sessions.Store
-}
-
-type ServeMux interface {
-	ServeHTTP(w http.ResponseWriter, r *http.Request)
 }
 
 type Handler func(http.ResponseWriter, *http.Request, *Context) error
@@ -100,7 +96,7 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func getMethodList(methods int) (r []string) {
+func methodList(methods int) (r []string) {
 	if methods&GET == GET {
 		r = append(r, methodGet)
 	}
@@ -129,7 +125,7 @@ func NewGoat() *Goat {
 	http.Handle("/", r)
 
 	return &Goat{
-		router:       r,
+		Router:       r,
 		sessionstore: s,
 		routes:       make(map[string]*route),
 	}
@@ -154,15 +150,19 @@ func (g *Goat) RegisterRoute(path, name string, method int, handler interface{})
 		r.handler = h
 	} else if i, ok := handler.(Interceptor); ok {
 		r.interceptor = i
-	} else if h, ok := handler.(ServeMux); ok {
-		g.router.Handle(path, h)
+	} else if h, ok := handler.(http.Handler); ok {
+		g.Router.Handle(path, h)
 		return
 	} else {
 		panic("Unknown handler passed to RegisterRoute")
 	}
 
-	methods := getMethodList(method)
-	g.router.Handle(path, r).Methods(methods...)
+	methods := methodList(method)
+	g.Router.Handle(path, r).Methods(methods...).Name(r.name)
+}
+
+func (g *Goat) CloneDB() *mgo.Database {
+	return g.dbsession.Clone().DB(g.dbname)
 }
 
 func (g *Goat) RegisterStaticFileHandler(path string) {
@@ -174,8 +174,8 @@ func (g *Goat) RegisterMiddleware(m Middleware) {
 	g.middleware = append(g.middleware, m)
 }
 
-func (g *Goat) Reverse(route string) (*url.URL, error) {
-	return g.router.Get(route).URL()
+func (g *Goat) Reverse(root string, params ...string) (*url.URL, error) {
+	return g.Router.Get(root).URL(params...)
 }
 
 func (g *Goat) ListenAndServe(port string) {

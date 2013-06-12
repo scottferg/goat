@@ -53,12 +53,10 @@ func (u *User) SetPassword(password string) error {
 	return nil
 }
 
-func (u *User) Save(c *Context) error {
-	if err := c.Database.C("goat_users").Insert(u); err != nil {
-		return err
-	}
+func (u *User) Save(c *Context) (err error) {
+	_, err = c.Database.C("goat_users").UpsertId(u.Id, u)
 
-	return nil
+	return
 }
 
 func (u *User) Login(w http.ResponseWriter, r *http.Request, c *Context) {

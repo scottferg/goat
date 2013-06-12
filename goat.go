@@ -34,8 +34,10 @@ import (
 	"github.com/scottferg/mux"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
 const (
@@ -57,6 +59,7 @@ type Goat struct {
 	dbsession    *mgo.Session
 	dbname       string
 	sessionstore sessions.Store
+	listener     *net.TCPListener
 }
 
 type Handler func(http.ResponseWriter, *http.Request, *Context) error
@@ -165,9 +168,9 @@ func (g *Goat) CloneDB() *mgo.Database {
 	return g.dbsession.Clone().DB(g.dbname)
 }
 
-func (g *Goat) RegisterStaticFileHandler(path string) {
+func (g *Goat) RegisterStaticFileHandler(remote, local string) {
 	// Static file handler
-	http.Handle(path, http.StripPrefix(path, http.FileServer(http.Dir("."+path))))
+	http.Handle(remote, http.FileServer(http.Dir(local)))
 }
 
 func (g *Goat) RegisterMiddleware(m Middleware) {
@@ -179,15 +182,25 @@ func (g *Goat) Reverse(root string, params ...string) (*url.URL, error) {
 }
 
 func (g *Goat) ListenAndServe(port string) {
-	if port == "" {
-		port = "8080"
+	p := 8080
+
+	if port != "" {
+		p, _ = strconv.Atoi(port)
 	}
 
-	server := &http.Server{
-		Addr: ":" + port,
-	}
+	server := &http.Server{}
 
-	if err := server.ListenAndServe(); err != nil {
+    fmt.Println(p)
+
+	g.listener, _ = net.ListenTCP("tcp", &net.TCPAddr{
+		Port: p,
+	})
+
+	if err := server.Serve(g.listener); err != nil {
 		fmt.Printf("Error when starting server: %s", err.Error())
 	}
+}
+
+func (g *Goat) Close() {
+	g.listener.Close()
 }

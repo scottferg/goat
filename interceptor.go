@@ -83,11 +83,10 @@ func NewAuthSessionInterceptor(normal, unauthorized Handler) Interceptor {
 		if uid != nil {
 			// run the handler and grab the error, and report it
 			if uid, ok := c.Session.Values["uid"].(bson.ObjectId); ok {
-				// TODO: Error check here
-				c.Database.C("goat_users").Find(bson.M{"_id": uid}).One(&c.User)
+				if c.Database.C("goat_users").Find(bson.M{"_id": uid}).One(&c.User); c.User != nil {
+					return normal
+				}
 			}
-
-			return normal
 		}
 
 		return unauthorized

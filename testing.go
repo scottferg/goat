@@ -32,7 +32,6 @@ import (
 	"github.com/scottferg/mux"
 	"net/http"
 	"net/http/httptest"
-	"time"
 )
 
 type TestSuite struct {
@@ -47,7 +46,6 @@ func NewTestSuite(g *Goat) *TestSuite {
 
 func (t *TestSuite) SetUp() {
 	fmt.Println("Goat setup!")
-	t.g.RegisterMiddleware(t.g.NewDatabaseMiddleware("localhost", fmt.Sprintf("%s_goat_test", time.Now().String())))
 }
 
 func (t *TestSuite) TearDown() {

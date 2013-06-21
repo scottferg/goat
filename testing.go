@@ -27,13 +27,6 @@
 
 package goat
 
-import (
-	"fmt"
-	"github.com/scottferg/mux"
-	"net/http"
-	"net/http/httptest"
-)
-
 type TestSuite struct {
 	g *Goat
 }
@@ -44,23 +37,6 @@ func NewTestSuite(g *Goat) *TestSuite {
 	}
 }
 
-func (t *TestSuite) SetUp() {
-	fmt.Println("Goat setup!")
-}
+func (t *TestSuite) SetUp() {}
 
-func (t *TestSuite) TearDown() {
-	fmt.Println("Goat teardown!")
-}
-
-func (g *Goat) ServeRoute(name string, vars map[string]string) (*httptest.Server, *httptest.ResponseRecorder) {
-	recorder := httptest.NewRecorder()
-	route := g.routes[name]
-
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if vars != nil {
-			mux.SetVars(r, vars)
-		}
-
-		route.ServeHTTP(recorder, r)
-	})), recorder
-}
+func (t *TestSuite) TearDown() {}

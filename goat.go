@@ -37,6 +37,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
 const (
@@ -181,15 +182,19 @@ func (g *Goat) Reverse(root string, params ...string) (*url.URL, error) {
 }
 
 func (g *Goat) ListenAndServe(port string) {
-	if port == "" {
-		port = "8080"
+	p := 8080
+
+	if port != "" {
+		p, _ = strconv.Atoi(port)
 	}
 
-	server := &http.Server{
-		Addr: ":" + port,
-	}
+	server := &http.Server{}
 
-	if err := server.ListenAndServe(); err != nil {
+	g.listener, _ = net.ListenTCP("tcp", &net.TCPAddr{
+		Port: p,
+	})
+
+	if err := server.Serve(g.listener); err != nil {
 		fmt.Printf("Error when starting server: %s", err.Error())
 	}
 }

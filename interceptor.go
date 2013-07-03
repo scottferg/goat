@@ -65,7 +65,7 @@ func NewBasicAuthInterceptor(normal Handler) Interceptor {
 		credentials := strings.Split(s, ":")
 
 		// Authenticate now
-		u, err := Authenticate(c, credentials[0], credentials[1])
+		u, err := Authenticate(credentials[0], credentials[1], c)
 		if err != nil {
 			return Generic401
 		}

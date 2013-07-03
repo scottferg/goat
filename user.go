@@ -38,6 +38,7 @@ type User struct {
 	Id       bson.ObjectId `bson:"_id,omitempty"`
 	Username string
 	Password []byte
+	Values   map[string]interface{}
 }
 
 // SetPassword takes a plaintext password and hashes it with bcrypt and sets the
@@ -73,6 +74,7 @@ func NewUser(username, password string, c *Context) (u *User, err error) {
 	u = &User{
 		Id:       bson.NewObjectId(),
 		Username: username,
+		Values:   make(map[string]interface{}),
 	}
 	err = u.SetPassword(password)
 
@@ -88,7 +90,7 @@ func FindUser(username string, c *Context) (u *User, err error) {
 }
 
 // Login validates and returns a user object if they exist in the database.
-func Authenticate(c *Context, username, password string) (u *User, err error) {
+func Authenticate(username, password string, c *Context) (u *User, err error) {
 	if err = c.Database.C("goat_users").Find(bson.M{"username": username}).One(&u); err != nil {
 		return
 	}

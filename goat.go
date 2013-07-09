@@ -30,8 +30,8 @@ package goat
 import (
 	"encoding/gob"
 	"fmt"
-	"github.com/gorilla/sessions"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"net"

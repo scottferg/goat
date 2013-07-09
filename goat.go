@@ -31,7 +31,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"github.com/gorilla/sessions"
-	"github.com/scottferg/mux"
+	"github.com/gorilla/mux"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"net"
@@ -41,10 +41,10 @@ import (
 )
 
 const (
-	GET    = 0x1
-	POST   = 0x2
-	PUT    = 0x4
-	DELETE = 0x8
+	GET    = 1 << 0
+	POST   = 1 << 1
+	PUT    = 1 << 2
+	DELETE = 1 << 3
 
 	methodGet    = "GET"
 	methodPost   = "POST"

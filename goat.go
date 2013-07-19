@@ -29,7 +29,6 @@ package goat
 
 import (
 	"encoding/gob"
-	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"labix.org/v2/mgo"
@@ -181,7 +180,7 @@ func (g *Goat) Reverse(root string, params ...string) (*url.URL, error) {
 	return g.Router.Get(root).URL(params...)
 }
 
-func (g *Goat) ListenAndServe(port string) {
+func (g *Goat) ListenAndServe(port string) error {
 	p := 8080
 
 	if port != "" {
@@ -194,9 +193,7 @@ func (g *Goat) ListenAndServe(port string) {
 		Port: p,
 	})
 
-	if err := server.Serve(g.listener); err != nil {
-		fmt.Printf("Error when starting server: %s", err.Error())
-	}
+	return server.Serve(g.listener)
 }
 
 func (g *Goat) Close() {

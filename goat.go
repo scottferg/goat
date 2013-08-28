@@ -59,6 +59,7 @@ type Goat struct {
 	dbname       string
 	sessionstore sessions.Store
 	listener     *net.TCPListener
+	servemux     *http.ServeMux
 }
 
 type Handler func(http.ResponseWriter, *http.Request, *Context) error
@@ -124,12 +125,14 @@ func NewGoat() *Goat {
 	s := sessions.NewCookieStore([]byte("sevenbyelevensecretbomberboy"))
 	r := mux.NewRouter()
 
-	http.Handle("/", r)
+	mx := http.NewServeMux()
+	mx.Handle("/", r)
 
 	return &Goat{
 		Router:       r,
 		sessionstore: s,
 		routes:       make(map[string]*route),
+		servemux:     mx,
 	}
 }
 
@@ -187,7 +190,9 @@ func (g *Goat) ListenAndServe(port string) error {
 		p, _ = strconv.Atoi(port)
 	}
 
-	server := &http.Server{}
+	server := &http.Server{
+		Handler: g.servemux,
+	}
 
 	g.listener, _ = net.ListenTCP("tcp", &net.TCPAddr{
 		Port: p,

@@ -71,7 +71,7 @@ func (g *Goat) NewDatabaseMiddleware(host, name string) Middleware {
 	g.dbname = name
 
 	return func(r *http.Request, c *Context) error {
-		c.Database = g.dbsession.Clone().DB(name)
+		c.Database = g.dbsession.Copy().DB(name)
 		return nil
 	}
 }

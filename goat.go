@@ -166,6 +166,10 @@ func (g *Goat) RegisterRoute(path, name string, method int, handler interface{})
 	g.Router.Handle(path, r).Methods(methods...).Name(r.name)
 }
 
+func (g *Goat) CopyDB() *mgo.Database {
+	return g.dbsession.Copy().DB(g.dbname)
+}
+
 func (g *Goat) CloneDB() *mgo.Database {
 	return g.dbsession.Clone().DB(g.dbname)
 }

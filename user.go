@@ -35,10 +35,10 @@ import (
 )
 
 type User struct {
-	Id       bson.ObjectId          `json:"_" bson:"_id,omitempty"`
+	Id       bson.ObjectId          `json:"_,omitempty" bson:"_id,omitempty"`
 	Username string                 `json:"username,omitempty" bson:"username"`
 	Password []byte                 `json:"password,omitempty" bson:"password"`
-	Values   map[string]interface{} `json:"_"`
+	Values   map[string]interface{} `json:"values,omitempty" bson:"values,omitempty"`
 }
 
 // SetPassword takes a plaintext password and hashes it with bcrypt and sets the

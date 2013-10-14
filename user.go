@@ -35,9 +35,9 @@ import (
 )
 
 type User struct {
-	Id       bson.ObjectId          `json:"_,omitempty" bson:"_id,omitempty"`
+	Id       bson.ObjectId          `json:"-,omitempty" bson:"_id,omitempty"`
 	Username string                 `json:"username,omitempty" bson:"username,omitempty"`
-	Password []byte                 `json:"password,omitempty" bson:"password,omitempty"`
+	Password []byte                 `json:"-" bson:"password,omitempty"`
 	Values   map[string]interface{} `json:"values,omitempty" bson:"values,omitempty"`
 }
 

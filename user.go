@@ -29,10 +29,30 @@ package goat
 
 import (
 	"code.google.com/p/go.crypto/bcrypt"
+	"crypto/md5"
 	"errors"
+	"fmt"
+	"io"
 	"labix.org/v2/mgo/bson"
 	"net/http"
+	"time"
 )
+
+type ResetToken struct {
+	Id        bson.ObjectId
+	Username  string
+	Token     string
+	Timestamp time.Time
+}
+
+func (r *ResetToken) Delete(c *Context) error {
+	return c.Database.C("goat_reset_tokens").RemoveId(r.Id)
+}
+
+func (r *ResetToken) Save(c *Context) error {
+	_, err := c.Database.C("goat_reset_tokens").UpsertId(r.Id, r)
+	return err
+}
 
 type User struct {
 	Id       bson.ObjectId          `json:"-,omitempty" bson:"_id,omitempty"`
@@ -100,4 +120,63 @@ func Authenticate(username, password string, c *Context) (u *User, err error) {
 	}
 
 	return
+}
+
+func ResetPassword(token, password string, c *Context) error {
+	// Get the reset token record
+	var reset ResetToken
+	err := c.Database.C("goat_reset_tokens").Find(
+		bson.M{
+			"token": token,
+		}).One(&reset)
+	if err != nil {
+		return err
+	}
+
+	// Token expiry is 48 hours
+	if time.Since(reset.Timestamp) > (48 * time.Hour) {
+		reset.Delete(c)
+		return errors.New("token expired")
+	}
+
+	// Get the user
+	u, err := FindUser(reset.Username, c)
+	if err != nil {
+		return err
+	}
+
+	err = u.SetPassword(password)
+	if err != nil {
+		return err
+	}
+
+	err = reset.Delete(c)
+	if err != nil {
+		return err
+	}
+
+	return u.Save(c)
+}
+
+func RequestResetToken(username string, c *Context) (*ResetToken, error) {
+	u, err := FindUser(username, c)
+	if err != nil {
+		return nil, err
+	}
+
+	token := ResetToken{
+		Id:        bson.NewObjectId(),
+		Username:  u.Username,
+		Timestamp: time.Now(),
+	}
+
+	hash := md5.New()
+	io.WriteString(hash, token.Id.Hex())
+	io.WriteString(hash, token.Timestamp.String())
+
+	token.Token = fmt.Sprintf("%x", hash.Sum(nil))
+
+	token.Save(c)
+
+	return &token, nil
 }

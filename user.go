@@ -158,11 +158,14 @@ func ResetPassword(token, password string, c *Context) error {
 	return u.Save(c)
 }
 
+// Fetches a request token for the user. If the user is found,
+// they will be added to the provided context.
 func RequestResetToken(username string, c *Context) (*ResetToken, error) {
 	u, err := FindUser(username, c)
 	if err != nil {
 		return nil, err
 	}
+	c.User = u
 
 	token := ResetToken{
 		Id:        bson.NewObjectId(),

@@ -14,7 +14,8 @@ type DBLogger struct {
 }
 
 type Entry struct {
-	Message string `bson:"_id"`
+	Id      bson.ObjectId `bson:"_id"`
+	Message string        `bson:"message"`
 }
 
 func New(c string, db *mgo.Database) *DBLogger {
@@ -34,8 +35,8 @@ func (l *DBLogger) Write(data []byte) (int, error) {
 
 func Tail(out io.Writer, log string, db *mgo.Database) {
 	var entry Entry
-    // Find the last entry in the tailable collection, then 
-    // use that to determine where to begin the cursor
+	// Find the last entry in the tailable collection, then
+	// use that to determine where to begin the cursor
 	db.C(log).Find(nil).Sort("-$natural").Limit(1).One(&entry)
 
 	query := func(id string) *mgo.Query {
@@ -56,7 +57,7 @@ func Tail(out io.Writer, log string, db *mgo.Database) {
 				return
 			}
 
-            iter = query(entry.Message).Sort("$natural").Tail(-1)
+			iter = query(entry.Message).Sort("$natural").Tail(-1)
 		}
 	}
 }

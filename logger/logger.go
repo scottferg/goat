@@ -27,9 +27,13 @@ func New(c string, db *mgo.Database) *DBLogger {
 
 func (l *DBLogger) Write(data []byte) (int, error) {
 	err := l.database.C(l.collection).Insert(Entry{
+		Id:      bson.NewObjectId(),
 		Message: strings.TrimSpace(string(data)),
 	})
 
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	return len(data), err
 }
 

@@ -55,7 +55,7 @@ func (r *ResetToken) Save(c *Context) error {
 }
 
 type User struct {
-	Id       bson.ObjectId          `json:"-,omitempty" bson:"_id,omitempty"`
+	Id       bson.ObjectId          `json:"-" bson:"_id,omitempty"`
 	Username string                 `json:"username,omitempty" bson:"username,omitempty"`
 	Password []byte                 `json:"-" bson:"password,omitempty"`
 	Values   map[string]interface{} `json:"values,omitempty" bson:"values,omitempty"`

@@ -205,6 +205,13 @@ func (g *Goat) ListenAndServe(port string) error {
 	return server.Serve(g.listener)
 }
 
+func (g *Goat) ListenAndServeTLS(cert, key, port string) error {
+	server := &http.Server{
+		Handler: g.servemux,
+	}
+	return server.ListenAndServeTLS(cert, key)
+}
+
 func (g *Goat) Close() {
 	g.listener.Close()
 }

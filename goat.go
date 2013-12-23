@@ -52,8 +52,13 @@ const (
 	methodDelete = "DELETE"
 )
 
+type Config struct {
+	Spdy bool
+}
+
 type Goat struct {
 	Router       *mux.Router
+	Config       Config
 	routes       map[string]*route
 	middleware   []Middleware
 	dbsession    *mgo.Session
@@ -120,7 +125,7 @@ func methodList(methods int) (r []string) {
 	return
 }
 
-func NewGoat() *Goat {
+func New(c *Config) *Goat {
 	// Initialize session store
 	gob.Register(bson.ObjectId(""))
 	s := sessions.NewCookieStore([]byte("sevenbyelevensecretbomberboy"))
@@ -131,6 +136,7 @@ func NewGoat() *Goat {
 
 	return &Goat{
 		Router:       r,
+		Config:       *c,
 		sessionstore: s,
 		routes:       make(map[string]*route),
 		servemux:     mx,
@@ -207,7 +213,15 @@ func (g *Goat) ListenAndServe(port string) error {
 }
 
 func (g *Goat) ListenAndServeTLS(cert, key, addr string) error {
-	return spdy.ListenAndServeTLS(addr, cert, key, g.servemux)
+	if g.Config.Spdy {
+		return spdy.ListenAndServeTLS(addr, cert, key, g.servemux)
+	}
+
+	server := &http.Server{
+		Addr:    addr,
+		Handler: g.servemux,
+	}
+	return server.ListenAndServeTLS(cert, key)
 }
 
 func (g *Goat) Close() {

@@ -31,6 +31,7 @@ import (
 	"encoding/gob"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	"github.com/scottferg/gospdy"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"net"
@@ -206,11 +207,7 @@ func (g *Goat) ListenAndServe(port string) error {
 }
 
 func (g *Goat) ListenAndServeTLS(cert, key, addr string) error {
-	server := &http.Server{
-		Addr:    addr,
-		Handler: g.servemux,
-	}
-	return server.ListenAndServeTLS(cert, key)
+	return spdy.ListenAndServeTLS(addr, cert, key, g.servemux)
 }
 
 func (g *Goat) Close() {

@@ -134,13 +134,18 @@ func New(c *Config) *Goat {
 	mx := http.NewServeMux()
 	mx.Handle("/", r)
 
-	return &Goat{
+	result := &Goat{
 		Router:       r,
-		Config:       *c,
 		sessionstore: s,
 		routes:       make(map[string]*route),
 		servemux:     mx,
 	}
+
+	if c != nil {
+		result.Config = *c
+	}
+
+	return result
 }
 
 func (g *Goat) RegisterRoute(path, name string, method int, handler interface{}) {
@@ -183,7 +188,7 @@ func (g *Goat) CloneDB() *mgo.Database {
 
 func (g *Goat) RegisterStaticFileHandler(remote, local string) {
 	// Static file handler
-	http.Handle(remote, http.FileServer(http.Dir(local)))
+	g.servemux.Handle(remote, http.FileServer(http.Dir(local)))
 }
 
 func (g *Goat) RegisterMiddleware(m Middleware) {
